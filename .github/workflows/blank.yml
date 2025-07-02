@@ -1,0 +1,106 @@
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+
+const suits = ["♠", "♥", "♦", "♣"];
+const values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+
+// Create full deck
+function createDeck() {
+  const deck = [];
+  for (const suit of suits) {
+    for (const value of values) {
+      deck.push({ suit, value });
+    }
+  }
+  return shuffle(deck);
+}
+
+function shuffle(deck) {
+  return [...deck].sort(() => Math.random() - 0.5);
+}
+
+function getCardPower(value) {
+  if (value === "2") return 14;
+  if (value === "A") return 13;
+  if (value === "K") return 12;
+  if (value === "Q") return 11;
+  if (value === "J") return 10;
+  return parseInt(value);
+}
+
+function Card({ card, onClick }) {
+  return (
+    <button
+      className="border p-2 m-1 rounded bg-white text-black shadow"
+      onClick={() => onClick(card)}
+    >
+      {card.value}
+      {card.suit}
+    </button>
+  );
+}
+
+export default function UltimateDurak() {
+  const [deck, setDeck] = useState([]);
+  const [hand, setHand] = useState([]);
+  const [faceUp, setFaceUp] = useState([]);
+  const [faceDown, setFaceDown] = useState([]);
+  const [table, setTable] = useState([]);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    startGame();
+  }, []);
+
+  function startGame() {
+    const newDeck = createDeck();
+    setDeck(newDeck.slice(9));
+    setFaceDown(newDeck.slice(0, 3));
+    setFaceUp(newDeck.slice(3, 6));
+    setHand(newDeck.slice(6, 9));
+    setTable([]);
+    setMessage("Game started. Play a card.");
+  }
+
+  function playCard(card) {
+    setTable([...table, card]);
+    const newHand = hand.filter((c) => c !== card);
+    const newCard = deck[0];
+    const remainingDeck = deck.slice(1);
+    if (newCard) newHand.push(newCard);
+    setDeck(remainingDeck);
+    setHand(newHand);
+    setMessage(`Played ${card.value}${card.suit}`);
+  }
+
+  return (
+    <div className="p-4">
+      <h1 className="text-xl font-bold mb-4">Ultimate Durak (Prototype)</h1>
+
+      <div className="mb-2">Deck size: {deck.length}</div>
+      <div className="mb-2">Face-up cards: {faceUp.map((c, i) => `${c.value}${c.suit} `)}</div>
+      <div className="mb-2">Face-down cards: {faceDown.length}</div>
+
+      <div className="my-4">
+        <h2 className="font-semibold">Your Hand</h2>
+        <div className="flex flex-wrap">
+          {hand.map((card, idx) => (
+            <Card key={idx} card={card} onClick={playCard} />
+          ))}
+        </div>
+      </div>
+
+      <div className="my-4">
+        <h2 className="font-semibold">Table</h2>
+        <div className="flex flex-wrap">
+          {table.map((card, idx) => (
+            <Card key={idx} card={card} onClick={() => {}} />
+          ))}
+        </div>
+      </div>
+
+      <div className="my-2 text-green-600">{message}</div>
+      <Button onClick={startGame}>Restart Game</Button>
+    </div>
+  );
+}
